@@ -198,10 +198,13 @@ def plot_mttbar(argv) :
             if LeptonType[0] != 13 :
                 continue
 
-            # Muon triggers only for now (use HLT_Mu45_eta2p1 with index 1)
-            if SemiLeptTrig[1] != 1  :
+            # Muon triggers only for now 
+            # 0   "HLT_Mu50",
+            # 1   "HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165",
+            # 2   "HLT_Ele115_CaloIdVT_GsfTrkIdT",
+            # 3   "HLT_PFHT1050"    
+            if SemiLeptTrig[0] != 1  :
                 continue
-
 
             hadTopCandP4 = ROOT.TLorentzVector()
             hadTopCandP4.SetPtEtaPhiM( FatJetPt[0], FatJetEta[0], FatJetPhi[0], FatJetMass[0])
@@ -218,9 +221,9 @@ def plot_mttbar(argv) :
             bdisc = NearestAK4JetBDisc[0]
 
             passKin = hadTopCandP4.Perp() > 400.
-            passTopTag = tau32 < 0.6 and mass_sd > 110. and mass_sd < 250.
+            passTopTag = tau32 < 0.6 and mass_sd > 105. and mass_sd < 220.
             pass2DCut = LeptonPtRel[0] > 55. or LeptonDRMin[0] > 0.4
-            passBtag = bdisc > 0.7
+            passBtag = bdisc > 0.4941
 
             if not passKin or not pass2DCut or not passBtag or not passTopTag :
                 continue
