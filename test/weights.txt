@@ -1,0 +1,4 @@
+mttbar_testQCD.root,1,1.0
+mttbar_testWJets.root,1,1.0
+mttbar_testEle2017B.root,1,1.0
+mttbar_testRSG1000.root,1,0.1
