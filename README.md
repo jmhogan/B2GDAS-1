@@ -15,14 +15,16 @@ To run :
 
 `cd CMSSW_10_2_16/src`
 
-`git clone https://github.com/cmsb2g/B2GDAS.git Analysis/B2GDAS`
+`git clone git@github.com:jmhogan/B2GDAS-1.git Analysis/B2GDAS`
 
 `cd Analysis/B2GDAS`
 
-`scram b -j 10`
+`scram b`
 
 `cd test`
 
 `voms-proxy-init`
+
+Optional: To test n-tuple production
 
 `python b2gdas_fwlite.py --input=inputfiles/RSGluonToTTM2000.txt --output=rsgluon_ttbar_2TeV.root --maxevents 10000`
