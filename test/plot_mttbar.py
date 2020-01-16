@@ -87,6 +87,8 @@ def plot_mttbar(argv) :
     #                  help='Is this Data?')
         
     (options, args) = parser.parse_args(argv)
+    print "Top tag", options.topTag
+    print "B tag", options.bTag
     argv = []
 
     print '===== Command line options ====='
@@ -394,7 +396,7 @@ def plot_mttbar(argv) :
             passMET = SemiLepMETpt > 50
             passKin = hadTopCandP4.Perp() > 400.
             passTopTag = passKin and tau32 < 0.7 and mass_sd > 110. and mass_sd < 230 and ( wsjet_disc > .1522 or bsjet_disc > .1522) 
-            passBtag = bdisc > .8001
+            passBtag = bdisc > .1522
 
             if not passLepPt or not passLepEta or not passMET:
                 continue
