@@ -237,8 +237,8 @@ def plot_mttbar(argv) :
             bsjet_disc = FatJetSDBDiscB[0]
             wsjet_disc = FatJetSDBDiscW[0]
     
-            passKin = hadTopCandP4.Perp() > 200.
-            passTopTag = tau32 < 0.7 and mass_sd > 60. 
+            passKin = hadTopCandP4.Perp() > 400.
+            passTopTag = tau32 < 0.7 and mass_sd > 110. 
             passFatJet = wsjet_disc > .8001 or bsjet_disc > .8001
             pass2DCut = LeptonPtRel[0] > 20. or LeptonDRMin[0] > 0.4
             passBtag = bdisc > .8001
