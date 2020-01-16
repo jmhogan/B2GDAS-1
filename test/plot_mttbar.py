@@ -54,7 +54,6 @@ def plot_mttbar(argv) :
 
     h_mtopHad = ROOT.TH1F("h_mtopHad", ";m_{jet} (GeV);Number", 100, 0, 400)
     h_mtopHadGroomed = ROOT.TH1F("h_mtopHadGroomed", ";Groomed m_{jet} (GeV);Number", 100, 0, 400)
-
     h_mttbar.Sumw2()
     
     h_mttbar_lwu.Sumw2()
@@ -68,6 +67,24 @@ def plot_mttbar(argv) :
     h_mtopHad.Sumw2()
     h_mtopHadGroomed.Sumw2()
 
+    NBinsEl = 15;
+    NBinsMu = 15;
+    edgesEl = [45, 50, 55, 60, 70, 80, 90, 100, 120, 140, 160, 200, 250, 300, 400, 500, 600, 800, 1000]
+    edgesMu = [45, 50, 55, 60, 70, 80, 90, 100, 120, 140, 160, 200, 250, 300, 400, 500, 600, 800, 1000]
+
+
+    h_passElHT = ROOT.TH1F("h_passElHT",";pt_{el} (Gev) ; Number", NBinsEl, array.array('f',edgesEl))
+    h_passHTelBin = ROOT.TH1F("h_passHT",";pt_{el} (Gev) ; Number", NBinsEl, array.array('f',edgesEl))
+    h_passHTmuBin = ROOT.TH1F("h_passHT",";pt_{el} (Gev) ; Number", NBinsMu, array.array('f',edgesMu))
+    h_passMuHT = ROOT.TH1F("h_passMuHT",";pt_{mu} (Gev) ; Number", NBinsMu, array.array('f',edgesMu))
+    h_passElHT.Sumw2()
+    h_passMuHT.Sumw2()
+    h_passHTmuBin.Sumw2()
+    h_passHTelBin.Sumw2()
+    
+    h_effEl = ROOT.TH1F("h_effEl",";pt_{el} (Gev) ; Number", NBinsEl, array.array('f',edgesEl))
+    h_effMu = ROOT.TH1F("h_effMu",";pt_{mu} (Gev) ; Number", NBinsMu, array.array('f',edgesMu))
+
     fin = ROOT.TFile.Open(options.file_in)
 
 
@@ -76,6 +93,7 @@ def plot_mttbar(argv) :
     isData = False
     if "SingleElectron" in options.file_in or "SingleMuon" in options.file_in:
         isData = True
+        print "Is Data"
     
     for itree,t in enumerate(trees) :
 
@@ -243,23 +261,41 @@ def plot_mttbar(argv) :
             if ientry < 0:
                 break
     
-                # Muons only for now
-            if LeptonType[0] != 13 :
-                continue
-    
-                # Muon triggers only for now 
-                # 0   "HLT_Mu50",
-                # 1   "HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165",
-                # 2   "HLT_Ele115_CaloIdVT_GsfTrkIdT",
-                # 3   "HLT_PFHT1050"    
-            if SemiLeptTrig[0] != 1  :
-                continue
+            # Muons only for now
+            #if LeptonType[0] != 13 :
+            #    continue
 
+
+            # Muon triggers only for now 
+            # 0   "HLT_Mu50",
+            # 1   "HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165",
+            # 2   "HLT_Ele115_CaloIdVT_GsfTrkIdT",
+            # 3   "HLT_PFHT1050"    
+            if isData:
+                if not (SemiLeptTrig[0] or SemiLeptTrig[1] or SemiLeptTrig[2] or SemiLeptTrig[3]):
+                    continue
+                # Check if HTPass for both electron and muon channels
+                if SemiLeptTrig[3]:
+                    h_passHTelBin.Fill(LeptonPt[0])
+                    h_passHTmuBin.Fill(LeptonPt[0])
+                # Electrons
+                if LeptonType[0] == 11:
+                    if not (SemiLeptTrig[1] == 1 or SemiLeptTrig[2] == 1):
+                        continue
+                    elif (SemiLeptTrig[3]):
+                        h_passElHT.Fill(LeptonPt[0])
+                # Muons
+                if LeptonType[0] == 13:
+                    if not SemiLeptTrig[0]:
+                        continue
+                    elif SemiLeptTrig[3]:
+                        h_passMuHT.Fill(LeptonPt[0])
+                        
             jec_up = FatJetJECUpSys[0]
             jec_down = FatJetJECDnSys[0]
             jer_up = FatJetJERUpSys[0]
             jer_down = FatJetJERDnSys[0]
-
+        
             hadTopCandP4 = ROOT.TLorentzVector()
             hadTopCandP4.SetPtEtaPhiM( FatJetPt[0], FatJetEta[0], FatJetPhi[0], FatJetMass[0])
             bJetCandP4 = ROOT.TLorentzVector()
@@ -296,8 +332,8 @@ def plot_mttbar(argv) :
             bsjet_disc = FatJetSDBDiscB[0]
             wsjet_disc = FatJetSDBDiscW[0]
     
-            passKin = hadTopCandP4.Perp() > 200.
-            passTopTag = tau32 < 0.7 and mass_sd > 60. 
+            passKin = hadTopCandP4.Perp() > 400.
+            passTopTag = tau32 < 0.7 and mass_sd > 110. 
             passFatJet = wsjet_disc > .8001 or bsjet_disc > .8001
             pass2DCut = LeptonPtRel[0] > 20. or LeptonDRMin[0] > 0.4
             passBtag = bdisc > .8001
@@ -374,6 +410,14 @@ def plot_mttbar(argv) :
             h_mtopHad.Fill( hadTopCandP4.M(), SemiLeptWeight[0] ) 
             
         print(count)
+
+        # Original hists have fine binning, change the bins below
+        # Eff = PassHt&&PassEL(Mu)/PassHt
+        h_effEl.Divide(h_passElHT,h_passHTelBin,1,1,"B")
+        h_effMu.Divide(h_passMuHT,h_passHTmuBin,1,1,"B")
+
+        # Loop over histogram bins and finds appropriate efficiency to apply
+        applyTriggerEfficiency(h_mttbar)
 
     fout.cd()
     fout.Write()
