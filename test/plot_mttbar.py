@@ -10,7 +10,7 @@
 import sys
 import array as array
 from optparse import OptionParser
-
+from tqdm import tqdm
 
 def plot_mttbar(argv) : 
     parser = OptionParser()
@@ -43,6 +43,11 @@ def plot_mttbar(argv) :
     h_mttbar = ROOT.TH1F("h_mttbar", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000)
     h_mtopHad = ROOT.TH1F("h_mtopHad", ";m_{jet} (GeV);Number", 100, 0, 400)
     h_mtopHadGroomed = ROOT.TH1F("h_mtopHadGroomed", ";Groomed m_{jet} (GeV);Number", 100, 0, 400)
+
+    h_mttbar.Sumw2()
+    h_mtopHad.Sumw2()
+    h_mtopHadGroomed.Sumw2()
+
     fin = ROOT.TFile.Open(options.file_in)
 
 
@@ -155,6 +160,8 @@ def plot_mttbar(argv) :
 
 
         t.SetBranchStatus ('*', 0)
+        t.SetBranchStatus ('FatJetSDBDiscB', 1)
+        t.SetBranchStatus ('FatJetSDBDiscW', 1)
         t.SetBranchStatus ('SemiLeptWeight', 1)
         t.SetBranchStatus ('PUWeight', 1)
         t.SetBranchStatus ('GenWeight', 1)
@@ -184,85 +191,99 @@ def plot_mttbar(argv) :
 
         entries = t.GetEntriesFast()
         print 'Processing tree ' + str(itree)
+        #disc_l = [0.1522, 0.4941, 0.8001]
 
         eventsToRun = entries
-        for jentry in xrange( eventsToRun ):
-            if jentry % 100000 == 0 :
-                print 'processing ' + str(jentry)
-            # get the next tree in the chain and verify
-            ientry = t.GetEntry( jentry )
-            if ientry < 0:
-                break
+        #eventsToRun = 100000
+        for d in disc_l:
+            count = 0
+            for jentry in xrange( eventsToRun ):
+                if jentry % 100000 == 0 :
+                    print 'processing ' + str(jentry)
+                # get the next tree in the chain and verify
+                ientry = t.GetEntry( jentry )
+                if ientry < 0:
+                    break
+    
+                # Muons only for now
+                if LeptonType[0] != 13 :
+                    continue
+    
+                # Muon triggers only for now 
+                # 0   "HLT_Mu50",
+                # 1   "HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165",
+                # 2   "HLT_Ele115_CaloIdVT_GsfTrkIdT",
+                # 3   "HLT_PFHT1050"    
+                if SemiLeptTrig[0] != 1  :
+                    continue
+    
+                hadTopCandP4 = ROOT.TLorentzVector()
+                hadTopCandP4.SetPtEtaPhiM( FatJetPt[0], FatJetEta[0], FatJetPhi[0], FatJetMass[0])
+                bJetCandP4 = ROOT.TLorentzVector()
+                bJetCandP4.SetPtEtaPhiM( NearestAK4JetPt[0], NearestAK4JetEta[0], NearestAK4JetPhi[0], NearestAK4JetMass[0])
+                nuCandP4 = ROOT.TLorentzVector( )
+                nuCandP4.SetPtEtaPhiM( SemiLepMETpt[0], 0, SemiLepMETphi[0], SemiLepMETpt[0] )
+                theLepton = ROOT.TLorentzVector()
+                theLepton.SetPtEtaPhiE( LeptonPt[0], LeptonEta[0], LeptonPhi[0], LeptonEnergy[0] ) # Assume massless
+                
+                
+                tau32 = FatJetTau32[0]
+                mass_sd = FatJetMassSoftDrop[0]
+                bdisc = NearestAK4JetBDisc[0]
 
-            # Muons only for now
-            if LeptonType[0] != 13 :
-                continue
+                bsjet_disc = FatJetSDBDiscB[0]
+                wsjet_disc = FatJetSDBDiscW[0]
+    
+                passKin = hadTopCandP4.Perp() > 200.
+                passTopTag = tau32 < 0.7 and mass_sd > 60. 
+                passFatJet = wsjet_disc > .8001 or bsjet_disc > .8001
+                pass2DCut = LeptonPtRel[0] > 20. or LeptonDRMin[0] > 0.4
+                passBtag = bdisc > .8001
+    
+                if not passKin or not pass2DCut or not passBtag or not passTopTag or not passFatJet:
+                    continue
+    
+                count+=1
+    
 
-            # Muon triggers only for now 
-            # 0   "HLT_Mu50",
-            # 1   "HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165",
-            # 2   "HLT_Ele115_CaloIdVT_GsfTrkIdT",
-            # 3   "HLT_PFHT1050"    
-            if SemiLeptTrig[0] != 1  :
-                continue
-
-            hadTopCandP4 = ROOT.TLorentzVector()
-            hadTopCandP4.SetPtEtaPhiM( FatJetPt[0], FatJetEta[0], FatJetPhi[0], FatJetMass[0])
-            bJetCandP4 = ROOT.TLorentzVector()
-            bJetCandP4.SetPtEtaPhiM( NearestAK4JetPt[0], NearestAK4JetEta[0], NearestAK4JetPhi[0], NearestAK4JetMass[0])
-            nuCandP4 = ROOT.TLorentzVector( )
-            nuCandP4.SetPtEtaPhiM( SemiLepMETpt[0], 0, SemiLepMETphi[0], SemiLepMETpt[0] )
-            theLepton = ROOT.TLorentzVector()
-            theLepton.SetPtEtaPhiE( LeptonPt[0], LeptonEta[0], LeptonPhi[0], LeptonEnergy[0] ) # Assume massless
-            
-            
-            tau32 = FatJetTau32[0]
-            mass_sd = FatJetMassSoftDrop[0]
-            bdisc = NearestAK4JetBDisc[0]
-
-            passKin = hadTopCandP4.Perp() > 400.
-            passTopTag = tau32 < 0.6 and mass_sd > 105. and mass_sd < 220.
-            pass2DCut = LeptonPtRel[0] > 55. or LeptonDRMin[0] > 0.4
-            passBtag = bdisc > 0.4941
-
-            if not passKin or not pass2DCut or not passBtag or not passTopTag :
-                continue
+                ##  ____  __.__                              __  .__         __________                     
+                ## |    |/ _|__| ____   ____   _____ _____ _/  |_|__| ____   \______   \ ____   ____  ____  
+                ## |      < |  |/    \_/ __ \ /     \\__  \\   __\  |/ ___\   |       _// __ \_/ ___\/  _ \ 
+                ## |    |  \|  |   |  \  ___/|  Y Y  \/ __ \|  | |  \  \___   |    |   \  ___/\  \__(  <_> )
+                ## |____|__ \__|___|  /\___  >__|_|  (____  /__| |__|\___  >  |____|_  /\___  >\___  >____/ 
+                ##         \/       \/     \/      \/     \/             \/          \/     \/     \/       
+                
+                # Now we do our kinematic calculation based on the categories of the
+                # number of top and bottom tags
+                mttbar = -1.0
 
 
-            ##  ____  __.__                              __  .__         __________                     
-            ## |    |/ _|__| ____   ____   _____ _____ _/  |_|__| ____   \______   \ ____   ____  ____  
-            ## |      < |  |/    \_/ __ \ /     \\__  \\   __\  |/ ___\   |       _// __ \_/ ___\/  _ \ 
-            ## |    |  \|  |   |  \  ___/|  Y Y  \/ __ \|  | |  \  \___   |    |   \  ___/\  \__(  <_> )
-            ## |____|__ \__|___|  /\___  >__|_|  (____  /__| |__|\___  >  |____|_  /\___  >\___  >____/ 
-            ##         \/       \/     \/      \/     \/             \/          \/     \/     \/       
+                lepTopCandP4 = None
+                # Get the z-component of the lepton from the W mass constraint
+                solution, nuz1, nuz2 = solve_nu( vlep=theLepton, vnu=nuCandP4 )
+                # If there is at least one real solution, pick it up
+                if solution :
+                    nuCandP4.SetPz( nuz1 )
+                else :
+                    nuCandP4.SetPz( nuz1.real )
 
-            # Now we do our kinematic calculation based on the categories of the
-            # number of top and bottom tags
-            mttbar = -1.0
+                lepTopCandP4 = nuCandP4 + theLepton + bJetCandP4
 
+                ttbarCand = hadTopCandP4 + lepTopCandP4
+                mttbar = ttbarCand.M()
 
-            lepTopCandP4 = None
-            # Get the z-component of the lepton from the W mass constraint
-            solution, nuz1, nuz2 = solve_nu( vlep=theLepton, vnu=nuCandP4 )
-            # If there is at least one real solution, pick it up
-            if solution :
-                nuCandP4.SetPz( nuz1 )
-            else :
-                nuCandP4.SetPz( nuz1.real )
+                h_mttbar.Fill( mttbar, SemiLeptWeight[0] )
+                h_mtopHadGroomed.Fill( mass_sd, SemiLeptWeight[0] )
+                h_mtopHad.Fill( hadTopCandP4.M(), SemiLeptWeight[0] )
+            print(count)
 
-            lepTopCandP4 = nuCandP4 + theLepton + bJetCandP4
-
-            ttbarCand = hadTopCandP4 + lepTopCandP4
-            mttbar = ttbarCand.M()
-
-            h_mttbar.Fill( mttbar, SemiLeptWeight[0] )
-            h_mtopHadGroomed.Fill( mass_sd, SemiLeptWeight[0] )
-            h_mtopHad.Fill( hadTopCandP4.M(), SemiLeptWeight[0] )
-            
 
     fout.cd()
     fout.Write()
     fout.Close()
+
+    
+    
 
 if __name__ == "__main__" :
     plot_mttbar(sys.argv)
