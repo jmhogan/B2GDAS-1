@@ -91,18 +91,26 @@ def plot_mttbar(argv) :
 
     fout= ROOT.TFile(options.file_out, "RECREATE")
 
-    h_mttbar = ROOT.TH1F("h_mttbar", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000)
+    h_mttbar = ROOT.TH1F("h_mttbar", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000)
 
-    h_mttbar_lwu = ROOT.TH1F("h_mttbar_lwu", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000)
-    h_mttbar_lwd = ROOT.TH1F("h_mttbar_lwd", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000)
+    h_mttbar_lwu = ROOT.TH1F("h_mttbar_lwu", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000)
+    h_mttbar_lwd = ROOT.TH1F("h_mttbar_lwd", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000)
 
-    h_mttbar_jec_up = ROOT.TH1F("h_mttbar_jec_up", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000) 
-    h_mttbar_jec_down = ROOT.TH1F("h_mttbar_jec_down", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000)
-    h_mttbar_jer_up = ROOT.TH1F("h_mttbar_jer_up", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000) 
-    h_mttbar_jer_down = ROOT.TH1F("h_mttbar_jer_down", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000)
+    h_mttbar_jec_up = ROOT.TH1F("h_mttbar_jec_up", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000) 
+    h_mttbar_jec_down = ROOT.TH1F("h_mttbar_jec_down", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000)
+    h_mttbar_jer_up = ROOT.TH1F("h_mttbar_jer_up", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000) 
+    h_mttbar_jer_down = ROOT.TH1F("h_mttbar_jer_down", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000)
 
-    h_mtopHad = ROOT.TH1F("h_mtopHad", ";m_{jet} (GeV);Number", 100, 0, 400)
-    h_mtopHadGroomed = ROOT.TH1F("h_mtopHadGroomed", ";Groomed m_{jet} (GeV);Number", 100, 0, 400)
+    h_mtopHad = ROOT.TH1F("h_mtopHad", ";m_{jet} (GeV);Number", 50, 0, 400)
+    h_mtopHadGroomed = ROOT.TH1F("h_mtopHadGroomed", ";Groomed m_{jet} (GeV);Number", 50, 0, 400)
+
+    h_lepton_pt = ROOT.TH1F("h_lepton_pt", ";p_{t} (GeV);Number", 50, 0, 500)
+    h_MET  = ROOT.TH1F("h_MET", ";E_T Missing (GeV);Number", 50, 0, 500)
+    h_lepton_eta = ROOT.TH1F("h_lepton_eta", "eta;Number", 50, -3, 3) 
+    h_LepTopCandP4_pt = ROOT.TH1F("h_LepTopCanP4_pt", ";p_T Leptonic Top (GeV);Number", 50, 0, 5000)
+    h_LepTopCandP4_m = ROOT.TH1F("h_LepTopCanP4_m", ";m_t (GeV);Number", 50, 0, 5000) 
+    h_Compare = ROOT.TH2D("h_Compare", "FatJet p_T (GeV);Lepton DR Min", 50, 0, 2000, 50, 0, 6 ) # Figure out syntax later...
+    
     h_mttbar.Sumw2()
     
     h_mttbar_lwu.Sumw2()
@@ -115,6 +123,13 @@ def plot_mttbar(argv) :
 
     h_mtopHad.Sumw2()
     h_mtopHadGroomed.Sumw2()
+
+    h_lepton_pt.Sumw2()
+    h_MET.Sumw2()
+    h_lepton_eta.Sumw2()
+    h_LepTopCandP4_pt.Sumw2()
+    h_LepTopCandP4_m.Sumw2()
+    h_Compare.Sumw2()
 
     h_passElHT = ROOT.TH1F("h_passElHT",";pt_{el} (Gev) ; Number", NBinsEl, array.array('f',edgesEl))
     h_passHTelBin = ROOT.TH1F("h_passHTelBin",";pt_{el} (Gev) ; Number", NBinsEl, array.array('f',edgesEl))
@@ -458,6 +473,13 @@ def plot_mttbar(argv) :
             h_mtopHadGroomed.Fill( mass_sd, SemiLeptWeight[0] ) 
             h_mtopHad.Fill( hadTopCandP4.M(), SemiLeptWeight[0] ) 
             
+            h_lepton_pt.Fill( theLepton.Pt(), SemiLeptWeight[0] )
+            h_lepton_eta.Fill( theLepton.Eta(), SemiLeptWeight[0] )
+            h_MET.Fill( SemiLepMETpt[0], SemiLeptWeight[0] )
+            h_LepTopCandP4_pt.Fill( lepTopCandP4.Pt(), SemiLeptWeight[0] )
+            h_LepTopCandP4_m.Fill( lepTopCandP4.M(), SemiLeptWeight[0] )
+            h_Compare.Fill( FatJetPt[0], LeptonDRMin[0], SemiLeptWeight[0] )
+            
         print(count)
 
         # Original hists have fine binning, change the bins below
@@ -476,6 +498,6 @@ def plot_mttbar(argv) :
 
 if __name__ == "__main__" :
     
-    plot_mttbar(sys.argv)
+    plot_mttbar(sys.argv) # what is this?
 
 
