@@ -72,6 +72,14 @@ def plot_mttbar(argv) :
                       dest='lepton_type',
                       help='Lepton Type')
 
+    parser.add_option('--topTag', action='store_true',
+                      dest='topTag',
+                      help='Require top tag. Defaults to true')
+
+    parser.add_option('--bTag', action='store_true',
+                      dest='bTag',
+                      help='Require b tag. Defaults to true')
+
     # Not necessary because LeptonType is a reco quantity
     #parser.add_option('--isData', action='store_true',
     #                  dest='isData',
@@ -297,18 +305,15 @@ def plot_mttbar(argv) :
         #eventsToRun = 100000
         count = 0
         for jentry in xrange( eventsToRun ):
+            triggerEfficiency = 1.
             if jentry % 100000 == 0 :
                 print 'processing ' + str(jentry)
                 # get the next tree in the chain and verify
             ientry = t.GetEntry( jentry )
             if ientry < 0:
                 break
-    
-            # Muons only for now
-            #if LeptonType[0] != 13 :
-            #    continue
 
-
+            # Triggering: Data -- Fills histograms to calculate trigger efficiencies for electrons and muons against HT. MC -- just prints the efficiency for now.
             # Muon triggers only for now 
             # 0   "HLT_Mu50",
             # 1   "HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165",
@@ -336,7 +341,7 @@ def plot_mttbar(argv) :
                 else:
                     continue
             else:
-                print getTriggerEfficiency(LeptonType, options.lepton_type, LeptonPt[0])
+                triggerEfficiency = getTriggerEfficiency(LeptonType, options.lepton_type, LeptonPt[0])
                         
                         
             jec_up = FatJetJECUpSys[0]
@@ -374,20 +379,32 @@ def plot_mttbar(argv) :
                 theLepton_WeightDown = theLeptonWeight - math.sqrt(LeptonIDWeightUnc[0]**2+EleRecoWeightUnc[0]**2)
             # -------------------------------------------------------------- #
 
+
             tau32 = FatJetTau32[0]
             mass_sd = FatJetMassSoftDrop[0]
             bdisc = NearestAK4JetBDisc[0]
             
             bsjet_disc = FatJetSDBDiscB[0]
             wsjet_disc = FatJetSDBDiscW[0]
-    
-            passKin = hadTopCandP4.Perp() > 400.
-            passTopTag = tau32 < 0.7 and mass_sd > 110. 
-            passFatJet = wsjet_disc > .8001 or bsjet_disc > .8001
-            pass2DCut = LeptonPtRel[0] > 20. or LeptonDRMin[0] > 0.4
-            passBtag = bdisc > .8001
+
             
-            if not passKin or not pass2DCut or not passBtag or not passTopTag or not passFatJet:
+            # CUTS
+            passLepPt = LeptonPt[0] > 55
+            passLepEta = (LeptonType[0]==11 and abs(LeptonEta[0]) < 2.5) or (LeptonType[0]==13 and abs(LeptonEta[0] < 2.4))
+            passMET = SemiLepMETpt > 50
+            passKin = hadTopCandP4.Perp() > 400.
+            passTopTag = passKin and tau32 < 0.7 and mass_sd > 110. and mass_sd < 230 and ( wsjet_disc > .1522 or bsjet_disc > .1522) 
+            passBtag = bdisc > .8001
+
+            if not passLepPt or not passLepEta or not passMET:
+                continue
+            if options.bTag and not passBtag:
+                continue
+            if not options.bTag and passBtag:
+                continue
+            if options.topTag and not passTopTag:
+                continue
+            if not options.topTag and passTopTag:
                 continue
             
                             
@@ -444,6 +461,8 @@ def plot_mttbar(argv) :
             else:
                 LWU = 1.0
                 LWD = 1.0
+
+            SemiLeptWeight[0] *= triggerEfficiency
 
             h_mttbar.Fill( mttbar, SemiLeptWeight[0] )
             
