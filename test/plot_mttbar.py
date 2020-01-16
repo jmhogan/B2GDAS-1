@@ -69,8 +69,8 @@ def plot_mttbar(argv) :
                       help='Output file')
 
     parser.add_option('--leptonType', type='string', action='store',
-                      dest='lepton_type',
-                      help='Lepton Type')
+                      dest='lepton_type', default = "electron",
+                                    help='Lepton Type')
 
     parser.add_option('--topTag', action='store_true',
                       dest='topTag',
@@ -120,6 +120,19 @@ def plot_mttbar(argv) :
     h_LepTopCandP4_pt = ROOT.TH1F("h_LepTopCanP4_pt", ";p_T Leptonic Top (GeV);Number", 50, 0, 5000)
     h_LepTopCandP4_m = ROOT.TH1F("h_LepTopCanP4_m", ";m_t (GeV);Number", 50, 0, 5000) 
     h_Compare = ROOT.TH2D("h_Compare", "FatJet p_T (GeV);Lepton DR Min", 50, 0, 2000, 50, 0, 6 ) # Figure out syntax later...
+
+    h_FatJetPt = ROOT.TH1F("h_FatJetPt",";pt_{jet} (GeV) ; Number", 50, 0, 1000)
+    h_FatJetEta = ROOT.TH1F("h_FatJetEta",";#Eta ; Number", 50, 0, 4)
+    h_NearestAK4JetPt = ROOT.TH1F("h_NearestAK4JetPt",";pt_{jet} (GeV) ; Number", 50,0 , 260)
+    h_NearestAK4JetEta = ROOT.TH1F("h_NearestAK4JetEta","; #Eta ; Number", 50, 0, 4)
+    h_NearestAK4JetBDisc = ROOT.TH1F("h_NearestAK4JetBDisc",";BDisc ; Number", 50, 0, 1)
+
+    h_FatJetPt.Sumw2()
+    h_FatJetEta.Sumw2()
+    h_NearestAK4JetPt.Sumw2()
+    h_NearestAK4JetEta.Sumw2()
+    h_NearestAK4JetBDisc.Sumw2()
+
     
     h_mttbar.Sumw2()
     
@@ -500,6 +513,12 @@ def plot_mttbar(argv) :
             h_LepTopCandP4_pt.Fill( lepTopCandP4.Pt(), SemiLeptWeight[0] )
             h_LepTopCandP4_m.Fill( lepTopCandP4.M(), SemiLeptWeight[0] )
             h_Compare.Fill( FatJetPt[0], LeptonDRMin[0], SemiLeptWeight[0] )
+
+            h_FatJetPt.Fill( FatJetPt[0], SemiLeptWeight[0] )
+            h_FatJetEta.Fill( FatJetEta[0], SemiLeptWeight[0] )
+            h_NearestAK4JetPt.Fill( NearestAK4JetPt[0], SemiLeptWeight[0])
+            h_NearestAK4JetEta.Fill( NearestAK4JetEta[0], SemiLeptWeight[0])
+            h_NearestAK4JetBDisc.Fill( NearestAK4JetBDisc[0], SemiLeptWeight[0])
             
         print(count)
 
