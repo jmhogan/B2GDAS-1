@@ -233,13 +233,13 @@ def plot_mttbar(argv) :
                     if LeptonType[0] == 11:
                         if not (SemiLeptTrig[1] == 1 or SemiLeptTrig[2] == 1):
                             continue
-                        else if (SemiLeptTrig[3]):
+                        elif (SemiLeptTrig[3]):
                             h_passElHT.Fill(LeptonPt)
                     # Muons
                     if LeptonType[0] == 13:
                         if not SemiLeptTrig[0]:
                             continue
-                        else if SemiLeptTrig[3]:
+                        elif SemiLeptTrig[3]:
                             h_passMuHT.Fill(LeptonPt)
                     
             hadTopCandP4 = ROOT.TLorentzVector()
@@ -305,9 +305,9 @@ def plot_mttbar(argv) :
         # Original hists have fine binning, change the bins below
         # Eff = PassHt&&PassEL(Mu)/PassHt
         h_effElHt = h_passElHT.Clone("ElectronTriggerEfficiency")
-        h_effElHt.Divide(h_passHT,1,1,B)
+        h_effElHt.Divide(h_effElHt,h_passHT,1,1,"B")
         h_effMuHt = h_passMuHT.Clone("MuonTriggerEfficiency")
-        h_effMuHt.Divide(h_passHT,1,1,B)
+        h_effMuHt.Divide(h_effMuHt,h_passHT,1,1,"B")
         
 
     fout.cd()
