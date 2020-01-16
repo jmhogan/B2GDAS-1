@@ -48,15 +48,23 @@ def plot_mttbar(argv) :
     h_mtopHad.Sumw2()
     h_mtopHadGroomed.Sumw2()
 
-    h_passElHT = ROOT.TH1F("h_passElHT",";pt_{el} (Gev) ; Number", 50, 20, 1020)
-    h_passHT = ROOT.TH1F("h_passHT",";pt_{el} (Gev) ; Number", 50, 20, 1020)
-    h_passMuHT = ROOT.TH1F("h_passMuHT",";pt_{mu} (Gev) ; Number", 50, 20, 1020)
+    NBinsEl = 15;
+    NBinsMu = 15;
+    edgesEl = [45, 50, 55, 60, 70, 80, 90, 100, 120, 140, 160, 200, 250, 300, 400, 500, 600, 800, 1000]
+    edgesMu = [45, 50, 55, 60, 70, 80, 90, 100, 120, 140, 160, 200, 250, 300, 400, 500, 600, 800, 1000]
+
+
+    h_passElHT = ROOT.TH1F("h_passElHT",";pt_{el} (Gev) ; Number", NBinsEl, array.array('f',edgesEl))
+    h_passHTelBin = ROOT.TH1F("h_passHT",";pt_{el} (Gev) ; Number", NBinsEl, array.array('f',edgesEl))
+    h_passHTmuBin = ROOT.TH1F("h_passHT",";pt_{el} (Gev) ; Number", NBinsMu, array.array('f',edgesMu))
+    h_passMuHT = ROOT.TH1F("h_passMuHT",";pt_{mu} (Gev) ; Number", NBinsMu, array.array('f',edgesMu))
     h_passElHT.Sumw2()
     h_passMuHT.Sumw2()
-    h_passHT.Sumw2()
+    h_passHTmuBin.Sumw2()
+    h_passHTelBin.Sumw2()
     
-    h_effEl = ROOT.TH1F("h_effEl",";pt_{el} (Gev) ; Number", 50, 20, 1020)
-    h_effMu = ROOT.TH1F("h_effMu",";pt_{mu} (Gev) ; Number", 50, 20, 1020)
+    h_effEl = ROOT.TH1F("h_effEl",";pt_{el} (Gev) ; Number", NBinsEl, array.array('f',edgesEl))
+    h_effMu = ROOT.TH1F("h_effMu",";pt_{mu} (Gev) ; Number", NBinsMu, array.array('f',edgesMu))
 
     fin = ROOT.TFile.Open(options.file_in)
 
@@ -232,7 +240,8 @@ def plot_mttbar(argv) :
                     continue
                 # Check if HTPass for both electron and muon channels
                 if SemiLeptTrig[3]:
-                    h_passHT.Fill(LeptonPt[0])
+                    h_passHTelBin.Fill(LeptonPt[0])
+                    h_passHTmuBin.Fill(LeptonPt[0])
                 # Electrons
                 if LeptonType[0] == 11:
                     if not (SemiLeptTrig[1] == 1 or SemiLeptTrig[2] == 1):
@@ -308,11 +317,11 @@ def plot_mttbar(argv) :
 
         # Original hists have fine binning, change the bins below
         # Eff = PassHt&&PassEL(Mu)/PassHt
-        #h_effEl = h_passElHT.Clone("ElectronTriggerEfficiency")
-        h_effEl.Divide(h_passElHT,h_passHT,1,1,"B")
-        #h_effMuHt = h_passMuHT.Clone("MuonTriggerEfficiency")
-        h_effMu.Divide(h_passMuHT,h_passHT,1,1,"B")
-        
+        h_effEl.Divide(h_passElHT,h_passHTelBin,1,1,"B")
+        h_effMu.Divide(h_passMuHT,h_passHTmuBin,1,1,"B")
+
+        # Loop over histogram bins and finds appropriate efficiency to apply
+        applyTriggerEfficiency(h_mttbar)
 
     fout.cd()
     fout.Write()
