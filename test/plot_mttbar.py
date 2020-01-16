@@ -54,6 +54,9 @@ def plot_mttbar(argv) :
     h_passElHT.Sumw2()
     h_passMuHT.Sumw2()
     h_passHT.Sumw2()
+    
+    h_effEl = ROOT.TH1F("h_effEl",";pt_{el} (Gev) ; Number", 50, 20, 1020)
+    h_effMu = ROOT.TH1F("h_effMu",";pt_{mu} (Gev) ; Number", 50, 20, 1020)
 
     fin = ROOT.TFile.Open(options.file_in)
 
@@ -63,6 +66,7 @@ def plot_mttbar(argv) :
     isData = False
     if "SingleElectron" in options.file_in or "SingleMuon" in options.file_in:
         isData = True
+        print "Is Data"
     
     for itree,t in enumerate(trees) :
 
@@ -214,33 +218,33 @@ def plot_mttbar(argv) :
             if ientry < 0:
                 break
     
-                # Muons only for now
-            if LeptonType[0] != 13 :
-                continue
+            # Muons only for now
+            #if LeptonType[0] != 13 :
+            #    continue
     
-                # Muon triggers only for now 
-                # 0   "HLT_Mu50",
-                # 1   "HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165",
-                # 2   "HLT_Ele115_CaloIdVT_GsfTrkIdT",
-                # 3   "HLT_PFHT1050"    
-                if isData:
-                    if not (SemiLeptTrig[0] or SemiLeptTrig[1] or SemiLeptTrig[2] or SemiLeptTrig[3]):
+            # Muon triggers only for now 
+            # 0   "HLT_Mu50",
+            # 1   "HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165",
+            # 2   "HLT_Ele115_CaloIdVT_GsfTrkIdT",
+            # 3   "HLT_PFHT1050"    
+            if isData:
+                if not (SemiLeptTrig[0] or SemiLeptTrig[1] or SemiLeptTrig[2] or SemiLeptTrig[3]):
+                    continue
+                # Check if HTPass for both electron and muon channels
+                if SemiLeptTrig[3]:
+                    h_passHT.Fill(LeptonPt[0])
+                # Electrons
+                if LeptonType[0] == 11:
+                    if not (SemiLeptTrig[1] == 1 or SemiLeptTrig[2] == 1):
                         continue
-                    # Check if HTPass for both electron and muon channels
-                    if SemiLeptTrig[3]:
-                        h_passHt.Fill(LeptonPt[0])
-                    # Electrons
-                    if LeptonType[0] == 11:
-                        if not (SemiLeptTrig[1] == 1 or SemiLeptTrig[2] == 1):
-                            continue
-                        elif (SemiLeptTrig[3]):
-                            h_passElHT.Fill(LeptonPt)
-                    # Muons
-                    if LeptonType[0] == 13:
-                        if not SemiLeptTrig[0]:
-                            continue
-                        elif SemiLeptTrig[3]:
-                            h_passMuHT.Fill(LeptonPt)
+                    elif (SemiLeptTrig[3]):
+                        h_passElHT.Fill(LeptonPt[0])
+                # Muons
+                if LeptonType[0] == 13:
+                    if not SemiLeptTrig[0]:
+                        continue
+                    elif SemiLeptTrig[3]:
+                        h_passMuHT.Fill(LeptonPt[0])
                     
             hadTopCandP4 = ROOT.TLorentzVector()
             hadTopCandP4.SetPtEtaPhiM( FatJetPt[0], FatJetEta[0], FatJetPhi[0], FatJetMass[0])
@@ -304,10 +308,10 @@ def plot_mttbar(argv) :
 
         # Original hists have fine binning, change the bins below
         # Eff = PassHt&&PassEL(Mu)/PassHt
-        h_effElHt = h_passElHT.Clone("ElectronTriggerEfficiency")
-        h_effElHt.Divide(h_effElHt,h_passHT,1,1,"B")
-        h_effMuHt = h_passMuHT.Clone("MuonTriggerEfficiency")
-        h_effMuHt.Divide(h_effMuHt,h_passHT,1,1,"B")
+        #h_effEl = h_passElHT.Clone("ElectronTriggerEfficiency")
+        h_effEl.Divide(h_passElHT,h_passHT,1,1,"B")
+        #h_effMuHt = h_passMuHT.Clone("MuonTriggerEfficiency")
+        h_effMu.Divide(h_passMuHT,h_passHT,1,1,"B")
         
 
     fout.cd()
