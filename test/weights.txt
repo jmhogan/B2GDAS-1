@@ -1,5 +1,4 @@
-!Sample , Number of Effective MC Events, Cross Sections (pb)*1.3 (for RS KK Gluon)			
-
+##Sample , Number of Effective MC Events, Cross Sections (pb)*1.3 (for RS KK Gluon)			
 QCD_1000to1500.root,16458674,1207
 QCD_1500to2000.root,11508604,119.9
 QCD_2000toInf.root,5825566,25.24
