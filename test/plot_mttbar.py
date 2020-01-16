@@ -9,6 +9,7 @@
 ##         \/            \/        /_____/                   \/                    \/ 
 import sys
 import array as array
+import math
 from optparse import OptionParser
 from tqdm import tqdm
 
@@ -321,8 +322,8 @@ def plot_mttbar(argv) :
             theLepton_WeightDown = theLeptonWeight - LeptonIDWeightUnc[0]
             if LeptonType[0] != 13 : # If not a muon...
                 theLeptonWeight = LeptonIDWeight[0]*EleRecoWeight[0]
-                theLepton_WeightUp = theLeptonWeight + sqrt(LeptonIDWeightUnc[0]**2+EleRecoWeightUnc[0]**2)
-                theLepton_WeightDown = theLeptonWeight - sqrt(LeptonIDWeightUnc[0]**2+EleRecoWeightUnc[0]**2)
+                theLepton_WeightUp = theLeptonWeight + math.sqrt(LeptonIDWeightUnc[0]**2+EleRecoWeightUnc[0]**2)
+                theLepton_WeightDown = theLeptonWeight - math.sqrt(LeptonIDWeightUnc[0]**2+EleRecoWeightUnc[0]**2)
             # -------------------------------------------------------------- #
 
             tau32 = FatJetTau32[0]
