@@ -44,10 +44,16 @@ def plot_mttbar(argv) :
     h_mttbar = ROOT.TH1F("h_mttbar", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000)
     h_mtopHad = ROOT.TH1F("h_mtopHad", ";m_{jet} (GeV);Number", 100, 0, 400)
     h_mtopHadGroomed = ROOT.TH1F("h_mtopHadGroomed", ";Groomed m_{jet} (GeV);Number", 100, 0, 400)
-
     h_mttbar.Sumw2()
     h_mtopHad.Sumw2()
     h_mtopHadGroomed.Sumw2()
+
+    h_passElHT = ROOT.TH1F("h_passElHT",";pt_{el} (Gev) ; Number", 50, 20, 1020)
+    h_passHT = ROOT.TH1F("h_passHT",";pt_{el} (Gev) ; Number", 50, 20, 1020)
+    h_passMuHT = ROOT.TH1F("h_passMuHT",";pt_{mu} (Gev) ; Number", 50, 20, 1020)
+    h_passElHT.Sumw2()
+    h_passMuHT.Sumw2()
+    h_passHT.Sumw2()
 
     fin = ROOT.TFile.Open(options.file_in)
 
@@ -217,8 +223,24 @@ def plot_mttbar(argv) :
                 # 1   "HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165",
                 # 2   "HLT_Ele115_CaloIdVT_GsfTrkIdT",
                 # 3   "HLT_PFHT1050"    
-            if SemiLeptTrig[0] != 1  :
-                continue
+                if isData:
+                    if not (SemiLeptTrig[0] or SemiLeptTrig[1] or SemiLeptTrig[2] or SemiLeptTrig[3]):
+                        continue
+                    # Check if HTPass for both electron and muon channels
+                    if SemiLeptTrig[3]:
+                        h_passHt.Fill(LeptonPt[0])
+                    # Electrons
+                    if LeptonType[0] == 11:
+                        if not (SemiLeptTrig[1] == 1 or SemiLeptTrig[2] == 1):
+                            continue
+                        else if (SemiLeptTrig[3]):
+                            h_passElHT.Fill(LeptonPt)
+                    # Muons
+                    if LeptonType[0] == 13:
+                        if not SemiLeptTrig[0]:
+                            continue
+                        else if SemiLeptTrig[3]:
+                            h_passMuHT.Fill(LeptonPt)
                     
             hadTopCandP4 = ROOT.TLorentzVector()
             hadTopCandP4.SetPtEtaPhiM( FatJetPt[0], FatJetEta[0], FatJetPhi[0], FatJetMass[0])
@@ -279,6 +301,14 @@ def plot_mttbar(argv) :
             h_mtopHadGroomed.Fill( mass_sd, SemiLeptWeight[0] )
             h_mtopHad.Fill( hadTopCandP4.M(), SemiLeptWeight[0] )
         print(count)
+
+        # Original hists have fine binning, change the bins below
+        # Eff = PassHt&&PassEL(Mu)/PassHt
+        h_effElHt = h_passElHT.Clone("ElectronTriggerEfficiency")
+        h_effElHt.Divide(h_passHT,1,1,B)
+        h_effMuHt = h_passMuHT.Clone("MuonTriggerEfficiency")
+        h_effMuHt.Divide(h_passHT,1,1,B)
+        
 
     fout.cd()
     fout.Write()
