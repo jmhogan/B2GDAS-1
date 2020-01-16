@@ -22,7 +22,8 @@ def plot_mttbar(argv) :
     parser.add_option('--file_out', type='string', action='store',
                       dest='file_out',
                       help='Output file')
-    
+
+    # Not necessary because LeptonType is a reco quantity
     #parser.add_option('--isData', action='store_true',
     #                  dest='isData',
     #                  default = False,
@@ -48,7 +49,9 @@ def plot_mttbar(argv) :
 
     trees = [ fin.Get("TreeSemiLept") ]
 
-
+    isData = False
+    if "SingleElectron" in options.file_in or "SingleMuon" in options.file_in:
+        isData = True
     
     for itree,t in enumerate(trees) :
 
@@ -186,6 +189,7 @@ def plot_mttbar(argv) :
         print 'Processing tree ' + str(itree)
 
         eventsToRun = entries
+        print "Nevts", eventsToRun
         for jentry in xrange( eventsToRun ):
             if jentry % 100000 == 0 :
                 print 'processing ' + str(jentry)
@@ -194,17 +198,23 @@ def plot_mttbar(argv) :
             if ientry < 0:
                 break
 
-            # Muons only for now
-            if LeptonType[0] != 13 :
-                continue
-
-            # Muon triggers only for now 
+            # Just looking at leading lepton. Could check flavor and charge of subleading, triggr match, and consider Ht trigger 
+            # Triggers 
             # 0   "HLT_Mu50",
             # 1   "HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165",
             # 2   "HLT_Ele115_CaloIdVT_GsfTrkIdT",
-            # 3   "HLT_PFHT1050"    
-            if SemiLeptTrig[0] != 1  :
-                continue
+            # 3   "HLT_PFHT1050"
+            if isData:
+                if not (SemiLeptTrig[0] or SemiLeptTrig[1] or SemiLeptTrig[2] or SemiLeptTrig[3]):
+                    continue
+                # Electrons
+                if LeptonType[0] == 11 and not (SemiLeptTrig[1] == 1 or SemiLeptTrig[2] == 1):
+                    continue
+                # Muons
+                if LeptonType[0] == 13 and not SemiLeptTrig[0] == 1:
+                    continue
+            #else:   
+            #Apply trigger efficiencies
 
             hadTopCandP4 = ROOT.TLorentzVector()
             hadTopCandP4.SetPtEtaPhiM( FatJetPt[0], FatJetEta[0], FatJetPhi[0], FatJetMass[0])
