@@ -9,6 +9,7 @@
 ##         \/            \/        /_____/                   \/                    \/ 
 import sys
 import array as array
+import math
 from optparse import OptionParser
 from tqdm import tqdm
 
@@ -89,10 +90,29 @@ def plot_mttbar(argv) :
     from leptonic_nu_z_component import solve_nu_tmass, solve_nu
 
     fout= ROOT.TFile(options.file_out, "RECREATE")
+
     h_mttbar = ROOT.TH1F("h_mttbar", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000)
+
+    h_mttbar_lwu = ROOT.TH1F("h_mttbar_lwu", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000)
+    h_mttbar_lwd = ROOT.TH1F("h_mttbar_lwd", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000)
+
+    h_mttbar_jec_up = ROOT.TH1F("h_mttbar_jec_up", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000) 
+    h_mttbar_jec_down = ROOT.TH1F("h_mttbar_jec_down", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000)
+    h_mttbar_jer_up = ROOT.TH1F("h_mttbar_jer_up", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000) 
+    h_mttbar_jer_down = ROOT.TH1F("h_mttbar_jer_down", ";m_{t#bar{t}} (GeV);Number", 100, 0, 5000)
+
     h_mtopHad = ROOT.TH1F("h_mtopHad", ";m_{jet} (GeV);Number", 100, 0, 400)
     h_mtopHadGroomed = ROOT.TH1F("h_mtopHadGroomed", ";Groomed m_{jet} (GeV);Number", 100, 0, 400)
     h_mttbar.Sumw2()
+    
+    h_mttbar_lwu.Sumw2()
+    h_mttbar_lwd.Sumw2()
+
+    h_mttbar_jec_up.Sumw2()
+    h_mttbar_jec_down.Sumw2()
+    h_mttbar_jer_up.Sumw2()
+    h_mttbar_jer_down.Sumw2()
+
     h_mtopHad.Sumw2()
     h_mtopHadGroomed.Sumw2()
 
@@ -122,6 +142,10 @@ def plot_mttbar(argv) :
 
         #if options.isData : 
         SemiLeptTrig        =  ROOT.vector('int')()
+        LeptonIDWeight      =  array.array('f', [0.] )
+        LeptonIDWeightUnc   =  array.array('f', [0.] )
+        EleRecoWeight       =  array.array('f', [0.] )
+        EleRecoWeightUnc    =  array.array('f', [0.] )
         SemiLeptWeight      = array.array('f', [0.] )
         PUWeight            = array.array('f', [0.] )
         GenWeight           = array.array('f', [0.] )
@@ -174,6 +198,10 @@ def plot_mttbar(argv) :
         #if options.isData : 
         t.SetBranchAddress('SemiLeptTrig'        , SemiLeptTrig )
         t.SetBranchAddress('SemiLeptWeight'      , SemiLeptWeight      ) #Combined weight of all scale factors (lepton, PU, generator) relevant for the smeileptonic event selection
+        t.SetBranchAddress('LeptonIDWeight', LeptonIDWeight)
+        t.SetBranchAddress('LeptonIDWeightUnc', LeptonIDWeightUnc)
+        t.SetBranchAddress('EleRecoWeight', EleRecoWeight)
+        t.SetBranchAddress('EleRecoWeightUnc', EleRecoWeightUnc)
         t.SetBranchAddress('PUWeight'            , PUWeight            )
         t.SetBranchAddress('GenWeight'           , GenWeight               )
         t.SetBranchAddress('FatJetPt'            , FatJetPt            )
@@ -250,6 +278,14 @@ def plot_mttbar(argv) :
         t.SetBranchStatus ('LeptonIso'           , 1)
         t.SetBranchStatus ('LeptonPtRel'         , 1)
         t.SetBranchStatus ('LeptonDRMin'         , 1)
+        t.SetBranchStatus('FatJetJECUpSys'      , 1)
+        t.SetBranchStatus('FatJetJECDnSys'      , 1)
+        t.SetBranchStatus('FatJetJERUpSys'      , 1)
+        t.SetBranchStatus('FatJetJERDnSys'      , 1)
+        t.SetBranchStatus('NearestAK4JetJECUpSys'      , 1)
+        t.SetBranchStatus('NearestAK4JetJECDnSys'      , 1)
+        t.SetBranchStatus('NearestAK4JetJERUpSys'      , 1)
+        t.SetBranchStatus('NearestAK4JetJERDnSys'      , 1)        
 
 
         entries = t.GetEntriesFast()
@@ -271,7 +307,8 @@ def plot_mttbar(argv) :
             # Muons only for now
             #if LeptonType[0] != 13 :
             #    continue
-    
+
+
             # Muon triggers only for now 
             # 0   "HLT_Mu50",
             # 1   "HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165",
@@ -301,17 +338,42 @@ def plot_mttbar(argv) :
             else:
                 print getTriggerEfficiency(LeptonType, options.lepton_type, LeptonPt[0])
                         
-                    
+                        
+            jec_up = FatJetJECUpSys[0]
+            jec_down = FatJetJECDnSys[0]
+            jer_up = FatJetJERUpSys[0]
+            jer_down = FatJetJERDnSys[0]
+        
             hadTopCandP4 = ROOT.TLorentzVector()
+        
             hadTopCandP4.SetPtEtaPhiM( FatJetPt[0], FatJetEta[0], FatJetPhi[0], FatJetMass[0])
             bJetCandP4 = ROOT.TLorentzVector()
             bJetCandP4.SetPtEtaPhiM( NearestAK4JetPt[0], NearestAK4JetEta[0], NearestAK4JetPhi[0], NearestAK4JetMass[0])
             nuCandP4 = ROOT.TLorentzVector( )
-            nuCandP4.SetPtEtaPhiM( SemiLepMETpt[0], 0, SemiLepMETphi[0], SemiLepMETpt[0] )
+            nuCandP4.SetPtEtaPhiM( SemiLepMETpt[0], 0, SemiLepMETphi[0], 0 )
             theLepton = ROOT.TLorentzVector()
             theLepton.SetPtEtaPhiE( LeptonPt[0], LeptonEta[0], LeptonPhi[0], LeptonEnergy[0] ) # Assume massless
+
+            # ------------ Jet Energy Corrections+Resolution ----------------#
+            hadTopCandP4_jec_up = hadTopCandP4*jec_up
+            hadTopCandP4_jec_down = hadTopCandP4*jec_down
+            hadTopCandP4_jer_up = hadTopCandP4*jer_up
+            hadTopCandP4_jer_down = hadTopCandP4*jer_down
+
+            bJetCandP4_jec_up = bJetCandP4*jec_up
+            bJetCandP4_jec_down = bJetCandP4*jec_down
+            bJetCandP4_jer_up = bJetCandP4*jer_up
+            bJetCandP4_jer_down = bJetCandP4*jer_down
             
-                
+            theLeptonWeight = LeptonIDWeight[0]
+            theLepton_WeightUp = theLeptonWeight + LeptonIDWeightUnc[0]
+            theLepton_WeightDown = theLeptonWeight - LeptonIDWeightUnc[0]
+            if LeptonType[0] != 13 : # If not a muon...
+                theLeptonWeight = LeptonIDWeight[0]*EleRecoWeight[0]
+                theLepton_WeightUp = theLeptonWeight + math.sqrt(LeptonIDWeightUnc[0]**2+EleRecoWeightUnc[0]**2)
+                theLepton_WeightDown = theLeptonWeight - math.sqrt(LeptonIDWeightUnc[0]**2+EleRecoWeightUnc[0]**2)
+            # -------------------------------------------------------------- #
+
             tau32 = FatJetTau32[0]
             mass_sd = FatJetMassSoftDrop[0]
             bdisc = NearestAK4JetBDisc[0]
@@ -327,7 +389,8 @@ def plot_mttbar(argv) :
             
             if not passKin or not pass2DCut or not passBtag or not passTopTag or not passFatJet:
                 continue
-                
+            
+                            
             count+=1
     
 
@@ -340,8 +403,7 @@ def plot_mttbar(argv) :
                 
                 # Now we do our kinematic calculation based on the categories of the
                 # number of top and bottom tags
-            mttbar = -1.0
-
+            mttbar = -1.0 
 
             lepTopCandP4 = None
                 # Get the z-component of the lepton from the W mass constraint
@@ -353,13 +415,49 @@ def plot_mttbar(argv) :
                 nuCandP4.SetPz( nuz1.real )
 
             lepTopCandP4 = nuCandP4 + theLepton + bJetCandP4
-                
             ttbarCand = hadTopCandP4 + lepTopCandP4
             mttbar = ttbarCand.M()
 
+            # ----------- Jet Energy Corrections+Resolution ------------ #
+            lepTopCandP4_jec_up = nuCandP4 + theLepton + bJetCandP4_jec_up
+            ttbarCand_jec_up = hadTopCandP4_jec_up + lepTopCandP4_jec_up
+
+            lepTopCandP4_jec_down = nuCandP4 + theLepton + bJetCandP4_jec_down
+            ttbarCand_jec_down = hadTopCandP4_jec_down + lepTopCandP4_jec_down
+
+            lepTopCandP4_jer_up = nuCandP4 + theLepton + bJetCandP4_jer_up
+            ttbarCand_jer_up = hadTopCandP4_jer_up + lepTopCandP4_jer_up
+
+            lepTopCandP4_jer_down = nuCandP4 + theLepton + bJetCandP4_jer_down
+            ttbarCand_jer_down = hadTopCandP4_jer_down + lepTopCandP4_jer_down
+
+            mttbar_jec_up = ttbarCand_jec_up.M()
+            mttbar_jec_down = ttbarCand_jec_down.M()
+            mttbar_jer_up = ttbarCand_jer_up.M()
+            mttbar_jer_down = ttbarCand_jec_down.M()
+            # ---------------------------------------------------------- #
+
+            # -------- Avoid Division By Zero ---------- #
+            if theLeptonWeight != 0:
+                LWU = theLepton_WeightUp/theLeptonWeight
+                LWD = theLepton_WeightDown/theLeptonWeight
+            else:
+                LWU = 1.0
+                LWD = 1.0
+
             h_mttbar.Fill( mttbar, SemiLeptWeight[0] )
-            h_mtopHadGroomed.Fill( mass_sd, SemiLeptWeight[0] )
-            h_mtopHad.Fill( hadTopCandP4.M(), SemiLeptWeight[0] )
+            
+            h_mttbar_lwu.Fill( mttbar, SemiLeptWeight[0]*LWU ) 
+            h_mttbar_lwd.Fill( mttbar, SemiLeptWeight[0]*LWD )
+
+            h_mttbar_jec_up.Fill( mttbar_jec_up, SemiLeptWeight[0] )
+            h_mttbar_jec_down.Fill( mttbar_jec_down, SemiLeptWeight[0] )
+            h_mttbar_jer_up.Fill( mttbar_jer_up, SemiLeptWeight[0] )
+            h_mttbar_jer_down.Fill( mttbar_jer_down, SemiLeptWeight[0] ) 
+
+            h_mtopHadGroomed.Fill( mass_sd, SemiLeptWeight[0] ) 
+            h_mtopHad.Fill( hadTopCandP4.M(), SemiLeptWeight[0] ) 
+            
         print(count)
 
         # Original hists have fine binning, change the bins below
