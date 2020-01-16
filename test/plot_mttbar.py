@@ -12,6 +12,50 @@ import array as array
 from optparse import OptionParser
 from tqdm import tqdm
 
+#Global Trigger Efficiency Vars
+edgesEl = [45, 50, 55, 60, 70, 80, 90, 100, 120, 140, 160, 200, 250, 300, 400, 500, 600, 800, 1000]
+NBinsEl = 18#len(edgesEl)
+triggerEfficienciesEl = [0.026661361, 0.43208829, 0.77876109, 0.82022744, 0.83862364, 0.84485871, 0.85109389, 0.85565388, 0.86430746, 0.87895018, 0.87826085, 0.88820976, 0.89754951, 0.89563191, 0.90026498, 0.90593588, 0.90593588, 0.90593588, 0.90593588]
+edgesMu = [45, 50, 55, 60, 70, 80, 90, 100, 120, 140, 160, 200, 250, 300, 400, 500, 600, 800, 1000]
+NBinsMu = 18#len(edgesMu)
+triggerEfficienciesMu = [0.21379612, 0.95265096, 0.97956568, 0.98561150, 0.98043269, 0.97914445, 0.97634792, 0.95485681, 0.95453513, 0.94702542, 0.94127947, 0.93261105, 0.91108406, 0.91419727, 0.88470322, 0.89171273, 0.89171273, 0.89171273, 0.89171273]
+#Low edge: Eff, Uncert
+electronTriggerEfficiencyDict = {}
+for lowEdge in edgesEl:
+    electronTriggerEfficiencyDict[lowEdge] = 0.
+muonTriggerEfficiencyDict = {}
+for lowEdge in edgesEl:
+    electronTriggerEfficiencyDict[lowEdge] = 0.
+print "Finished setting up global variables"
+
+def getTriggerEfficiency(recoLeptonType, userLeptonType, leptonPt):
+    # Note the i will be 1 greater than the lower edge index, ROOT bin numbering starts at 1
+    if userLeptonType.lower()=="electron" and recoLeptonType[0]!=11:
+        return 0.
+    if userLeptonType.lower()=="muon" and recoLeptonType[0]!=13:
+        return 0.
+    if userLeptonType.lower()=="electron":
+        i = 0
+        for lowEdge in edgesEl:
+            if leptonPt < lowEdge:
+                break
+            else:
+                i+=1
+        return triggerEfficienciesEl[min(i,NBinsEl-1)]
+    elif userLeptonType.lower()=="muon":
+        i = 0
+        for lowEdge in edgesMu:
+            if leptonPt < lowEdge:
+                break
+            else:
+                i+=1
+        return triggerEfficienciesMu[min(i,NBinsMu-1)]
+    
+    print "Fails bad"
+    return 0.
+        
+
+
 def plot_mttbar(argv) : 
     parser = OptionParser()
 
@@ -22,6 +66,10 @@ def plot_mttbar(argv) :
     parser.add_option('--file_out', type='string', action='store',
                       dest='file_out',
                       help='Output file')
+
+    parser.add_option('--leptonType', type='string', action='store',
+                      dest='lepton_type',
+                      help='Lepton Type')
 
     # Not necessary because LeptonType is a reco quantity
     #parser.add_option('--isData', action='store_true',
@@ -48,15 +96,9 @@ def plot_mttbar(argv) :
     h_mtopHad.Sumw2()
     h_mtopHadGroomed.Sumw2()
 
-    NBinsEl = 15;
-    NBinsMu = 15;
-    edgesEl = [45, 50, 55, 60, 70, 80, 90, 100, 120, 140, 160, 200, 250, 300, 400, 500, 600, 800, 1000]
-    edgesMu = [45, 50, 55, 60, 70, 80, 90, 100, 120, 140, 160, 200, 250, 300, 400, 500, 600, 800, 1000]
-
-
     h_passElHT = ROOT.TH1F("h_passElHT",";pt_{el} (Gev) ; Number", NBinsEl, array.array('f',edgesEl))
-    h_passHTelBin = ROOT.TH1F("h_passHT",";pt_{el} (Gev) ; Number", NBinsEl, array.array('f',edgesEl))
-    h_passHTmuBin = ROOT.TH1F("h_passHT",";pt_{el} (Gev) ; Number", NBinsMu, array.array('f',edgesMu))
+    h_passHTelBin = ROOT.TH1F("h_passHTelBin",";pt_{el} (Gev) ; Number", NBinsEl, array.array('f',edgesEl))
+    h_passHTmuBin = ROOT.TH1F("h_passHTmuBin",";pt_{el} (Gev) ; Number", NBinsMu, array.array('f',edgesMu))
     h_passMuHT = ROOT.TH1F("h_passMuHT",";pt_{mu} (Gev) ; Number", NBinsMu, array.array('f',edgesMu))
     h_passElHT.Sumw2()
     h_passMuHT.Sumw2()
@@ -243,17 +285,22 @@ def plot_mttbar(argv) :
                     h_passHTelBin.Fill(LeptonPt[0])
                     h_passHTmuBin.Fill(LeptonPt[0])
                 # Electrons
-                if LeptonType[0] == 11:
+                if (options.lepton_type == 11 and LeptonType[0] == 11):
                     if not (SemiLeptTrig[1] == 1 or SemiLeptTrig[2] == 1):
                         continue
                     elif (SemiLeptTrig[3]):
                         h_passElHT.Fill(LeptonPt[0])
                 # Muons
-                if LeptonType[0] == 13:
+                elif (options.lepton_type == 13 and LeptonType[0] == 13):
                     if not SemiLeptTrig[0]:
                         continue
                     elif SemiLeptTrig[3]:
                         h_passMuHT.Fill(LeptonPt[0])
+                else:
+                    continue
+            else:
+                print getTriggerEfficiency(LeptonType, options.lepton_type, LeptonPt[0])
+                        
                     
             hadTopCandP4 = ROOT.TLorentzVector()
             hadTopCandP4.SetPtEtaPhiM( FatJetPt[0], FatJetEta[0], FatJetPhi[0], FatJetMass[0])
@@ -321,7 +368,7 @@ def plot_mttbar(argv) :
         h_effMu.Divide(h_passMuHT,h_passHTmuBin,1,1,"B")
 
         # Loop over histogram bins and finds appropriate efficiency to apply
-        applyTriggerEfficiency(h_mttbar)
+        #applyTriggerEfficiency(h_mttbar, )
 
     fout.cd()
     fout.Write()
@@ -330,6 +377,7 @@ def plot_mttbar(argv) :
     
 
 if __name__ == "__main__" :
+    
     plot_mttbar(sys.argv)
 
 
