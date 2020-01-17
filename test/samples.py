@@ -3,19 +3,51 @@ Lumi = 1
 
 bkgsamples = {
     "QCD": [   
-        "mttbar_testQCD.root",
+        "QCD_1000to1500_plots.root",
+        "QCD_1500to2000_plots.root",
+        "QCD_2000toInf_plots.root",
+        "QCD_200to300_plots.root",
+        "QCD_300to500_plots.root",
+        "QCD_500to700_plots.root",
+        "QCD_700to1000_plots.root",
     ],
     "WJets": [
-        "mttbar_testWJets.root",
+        "WJets_100to250_plots.root",
+        "WJets_250to400_plots.root",
+        "WJets_400to600_plots.root",
+        "WJets_50to100_plots.root".
+        "WJets_600toInf_plots.root",
+    ],
+    "ST" :[
+        "ST_s_tbar_plots.root",
+        "ST_s_top_plots.root",
+        "ST_tW_tbar_plots.root",
+        "ST_tW_top_plots.root",
+        "ST_t_tbar_plots.root",
+        "ST_t_top_plots.root",
+    ],
+    "TT" :[
+        "TT_0lep_plots.root",
+        "TT_1lep_plots.root",
+        "TT_2lep_plots.root",
     ]
 }
 
 data = [
-    "mttbar_testEle2017B.root",
+    "SingleElectron_ALL_plots.root",
+    "SingleMuon_ALL_plots.root",
 ]
 
 signal = [
-    "mttbar_testRSG1000.root",
+    "RSG_1000_plots.root",
+    "RSG_2000_plots.root",
+    "RSG_2500_plots.root",
+    "RSG_3000_plots.root",
+    "RSG_3500_plots.root",
+    "RSG_4000_plots.root",
+    "RSG_4500_plots.root",
+    "RSG_500_plots.root",
+    "RSG_5000_plots.root",
 ]
 
 weight = {}
