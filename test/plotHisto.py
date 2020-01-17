@@ -19,9 +19,9 @@ DEBUG = False
 def plotHisto(argv) : 
     parser = OptionParser()
 
-#    parser.add_option('--file_in', type='string', action='store',
- #                     dest='file_in',
-  #                    help='Input file')
+    parser.add_option('--inDir', type='string', action='store',
+                      dest='inDir',
+                      help='Input file')
 
     parser.add_option('--OutDir', type='string', action='store',
                       dest='OutDir',
@@ -43,8 +43,9 @@ def plotHisto(argv) :
         os.mkdir(options.OutDir)   
 
     if(DEBUG) : print bkgsamples
+    inDir = options.inDir
 
-    fin = ROOT.TFile.Open(bkgsamples[bkgsamples.keys()[0]][0])
+    fin = ROOT.TFile.Open(inDir+"/"+bkgsamples[bkgsamples.keys()[0]][0])
     ListOfKeys = fin.GetListOfKeys()
 
     # set canvas style
@@ -58,7 +59,7 @@ def plotHisto(argv) :
     canvas.SetTicky(0)
     iPeriod = 4
     iPos = 11
-    FillColor = [ROOT.kRed, ROOT.kCyan]
+    FillColor = [ROOT.kRed, ROOT.kCyan, ROOT.kGreen+2, ROOT.kMagenta+1, ROOT.kOrange+7]
 
     canvas.cd()
     padup = ROOT.TPad("padup", "padup", 0.01,0.33,0.99,0.99);
@@ -100,10 +101,10 @@ def plotHisto(argv) :
         for j,cat in enumerate(bkgsamples):
             bkghist = ROOT.TH1D()
             for i, f in enumerate(bkgsamples[cat]):
-                ifile = ROOT.TFile.Open(f)
+                ifile = ROOT.TFile.Open(inDir+"/"+f)
                 hist = ifile.Get(KeyNames[-1])
                 hist.SetDirectory(0)
-                bkghist.Add(hist,weight[f])
+                bkghist.Add(hist,weight[f.split("_plots")[0]])
             Hists.append(bkghist)
             if(DEBUG) : print Hists
             Hists[-1].SetFillColor(FillColor[j])
@@ -121,7 +122,7 @@ def plotHisto(argv) :
         BkgErr.SetLineColor(12)
         DataHist = ROOT.TH1D()
         for i,f in enumerate(data):
-            ifile = ROOT.TFile.Open(f)
+            ifile = ROOT.TFile.Open(inDir+"/"+f)
             hist = ifile.Get(KeyNames[-1])
             hist.SetDirectory(0)
             Hists.append(hist)
@@ -131,7 +132,7 @@ def plotHisto(argv) :
 
         SigHists = []
         for i,f in enumerate(signal):
-            ifile = ROOT.TFile.Open(f)
+            ifile = ROOT.TFile.Open(inDir+"/"+f)
             hist = ifile.Get(KeyNames[-1])
             hist.SetDirectory(0)
             hist.Scale(weight[f])
@@ -140,7 +141,7 @@ def plotHisto(argv) :
             SigHists[-1].SetLineWidth(3)
             SigHists[-1].SetLineStyle(i+1)          
             SigHists[-1].SetName(KeyNames[-1]+"_"+f.split('.')[0])
-            Legend.AddEntry(SigHists[-1], f.split('.')[0],"l")
+            Legend.AddEntry(SigHists[-1], f.split('_')[0]+" "+f.split('_')[1]+" GeV","l")
 	AllHists.append(Hists)
         padup.cd()
         StackedBkgHist.SetMinimum(0.0)
