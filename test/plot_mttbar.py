@@ -493,7 +493,7 @@ def plot_mttbar(argv) :
             mttbar_jer_down = ttbarCand_jec_down.M()
             # ---------------------------------------------------------- #
 
-            SemiLeptWeight[0] *= triggerEfficiency
+            SemiLeptWeight[0] *= triggerEfficiency * theLeptonWeight
 
             h_mttbar.Fill( mttbar, SemiLeptWeight[0] )
 
