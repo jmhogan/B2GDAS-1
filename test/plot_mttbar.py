@@ -357,13 +357,13 @@ def plot_mttbar(argv) :
                     h_passHTelBin.Fill(LeptonPt[0])
                     h_passHTmuBin.Fill(LeptonPt[0])
                 # Electrons
-                if (options.lepton_type == 11 and LeptonType[0] == 11):
+                if (options.lepton_type == "electron" and LeptonType[0] == 11):
                     if not (SemiLeptTrig[1] == 1 or SemiLeptTrig[2] == 1):
                         continue
                     elif (SemiLeptTrig[3]):
                         h_passElHT.Fill(LeptonPt[0])
                 # Muons
-                elif (options.lepton_type == 13 and LeptonType[0] == 13):
+                elif (options.lepton_type == "muon" and LeptonType[0] == 13):
                     if not SemiLeptTrig[0]:
                         continue
                     elif SemiLeptTrig[3]:
@@ -371,7 +371,12 @@ def plot_mttbar(argv) :
                 else:
                     continue
             else:
-                triggerEfficiency = getTriggerEfficiency(LeptonType, options.lepton_type, LeptonPt[0])
+                if (options.lepton_type == "electron" and LeptonType[0] == 11):
+                    triggerEfficiency = getTriggerEfficiency(LeptonType, options.lepton_type, LeptonPt[0])
+                elif (options.lepton_type == "muon" and LeptonType[0] == 13):
+                    triggerEfficiency = getTriggerEfficiency(LeptonType, options.lepton_type, LeptonPt[0])
+                else:
+                    continue
                         
                         
             jec_up = FatJetJECUpSys[0]
