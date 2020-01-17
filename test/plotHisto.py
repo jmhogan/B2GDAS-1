@@ -17,7 +17,18 @@ from samples import *
 ROOT.gROOT.SetBatch()
 DEBUG = False
 PrintYield = True
-
+Data_MC_SF_El = {
+"WJets" : 1.0,
+"QCD" : 1.0,
+"TT" : 1.0,
+"ST" : 1.0, 
+}
+Data_MC_SF_Mu = {
+"WJets" : 1.0,
+"QCD" : 1.0,
+"TT" : 1.0,
+"ST" : 1.0,
+}
 #JEC_unc = 0.05
 #JER_unc = 0.05
 #LepWeight = 0.0
@@ -50,7 +61,12 @@ def plotHisto(argv) :
 
     if(DEBUG) : print bkgsamples
     inDir = options.inDir
-
+    isEl = False
+    isMu = False
+    if 'el' in inDir.lower():
+        isEl = True
+    else:
+        isMu = True
     fin = ROOT.TFile.Open(inDir+"/"+bkgsamples[bkgsamples.keys()[0]][0])
     ListOfKeys = fin.GetListOfKeys()
 
@@ -128,6 +144,8 @@ def plotHisto(argv) :
                     bkghist.Add(hist,weight[f.split("_plots")[0]])
                 bkghist.SetDirectory(0)
                 ifile.Close()
+            if(isEl) : bkghist.Scale(Data_MC_SF_El[cat])
+            else : bkghist.Scale(Data_MC_SF_Mu[cat])
             Hists.append(bkghist)
             if(DEBUG) : print Hists, Hists[-1]
             Hists[-1].SetFillColor(FillColor[j])
