@@ -8,6 +8,7 @@
 ##         \/            \/        /_____/                   \/                    \/ 
 import sys, os
 import array as array
+import math
 from optparse import OptionParser
 import ROOT
 import CMS_lumi, tdrstyle
@@ -15,6 +16,11 @@ from samples import *
 
 ROOT.gROOT.SetBatch()
 DEBUG = False
+PrintYield = True
+
+#JEC_unc = 0.05
+#JER_unc = 0.05
+#LepWeight = 0.0
 
 def plotHisto(argv) : 
     parser = OptionParser()
@@ -88,6 +94,7 @@ def plotHisto(argv) :
     Legend.SetTextSize(0.04)
     Legend.SetNColumns(1)
     Legend.SetFillColor(ROOT.kWhite)
+
     KeyNames = []
     AllHists = []
     StackedHist = []
@@ -125,6 +132,7 @@ def plotHisto(argv) :
             if(DEBUG) : print Hists, Hists[-1]
             Hists[-1].SetFillColor(FillColor[j])
             Hists[-1].SetName(KeyNames[-1]+"_"+cat)
+            if(PrintYield): print cat, " Integral = ", Hists[-1].Integral()
             Legend.AddEntry(Hists[-1], cat,"f") 
 	    StackedBkgHist.Add(Hists[-1])
             if(DEBUG) : print 'after stack'
@@ -134,17 +142,16 @@ def plotHisto(argv) :
                 AllBkgHist.Add(Hists[-1])
         StackedHist.append(StackedBkgHist)
         BkgErr = ROOT.TGraphErrors()
-        errRate = 0.1
         for i in range(1,AllBkgHist.GetNbinsX()+1):
             BkgErr.SetPoint(i-1, AllBkgHist.GetBinCenter(i), AllBkgHist.GetBinContent(i))
-            BkgErr.SetPointError(i-1, (AllBkgHist.GetXaxis().GetBinCenter(i)-AllBkgHist.GetXaxis().GetBinLowEdge(i)), AllBkgHist.GetBinContent(i)*(errRate))
+            BkgErr.SetPointError(i-1, (AllBkgHist.GetXaxis().GetBinCenter(i)-AllBkgHist.GetXaxis().GetBinLowEdge(i)), AllBkgHist.GetBinError(i)) #**2+JER_unc**2+JEC_unc**2+LepWeight**2))
         BkgErr.SetFillStyle(3004)
         BkgErr.SetFillColor(12)
         BkgErr.SetLineColor(12)
 
         DataHist = ROOT.TH1D()
         for i,f in enumerate(data):
-            if not ('El' in inDir and 'El' in f) and not ('Mu' in inDir and 'Mu' in f): continue
+            if not ('el' in inDir.lower() and 'el' in f.lower()) and not ('mu' in inDir.lower() and 'mu' in f.lower()): continue
             ifile = ROOT.TFile.Open(inDir+"/"+f)
             hist = ifile.Get(KeyNames[-1])
             hist.SetDirectory(0)
@@ -191,14 +198,17 @@ def plotHisto(argv) :
         if(DEBUG) : print DataHist.GetNbinsX()
         ratioHist = DataHist.Clone("ratioHist")
         ratioHist.SetMinimum(0.0)
-        ratioHist.SetMaximum(1.6)
+        ratioHist.SetMaximum(2.0)
         ratioHist.GetXaxis().SetTitleSize(0.12)
         ratioHist.GetXaxis().SetLabelSize(0.11)
         ratioHist.GetYaxis().SetLabelSize(0.11)
-        ratioHist.GetYaxis().SetTitleSize(0.12)
-        ratioHist.GetYaxis().SetTitleOffset(0.35)
+        ratioHist.GetYaxis().SetTitleSize(0.11)
+        ratioHist.GetYaxis().SetTitleOffset(0.55)
+        ratioHist.GetYaxis().SetNdivisions(30303)
         #ratioHist.GetXaxis().SetTitleOffset(0.48)
         xTitle = SigHists[0].GetXaxis().GetTitle()
+        UnityLine = ROOT.TLine(ratioHist.GetXaxis().GetBinLowEdge(1), 1.0, ratioHist.GetXaxis().GetBinUpEdge(ratioHist.GetNbinsX()), 1.0)
+        UnityLine.SetLineColor(1)
         if(DEBUG) : print xTitle
         if options.discrim.lower() in KeyNames[-1].lower():
             if(DEBUG) : print ratioHist, AllBkgHist
@@ -208,11 +218,14 @@ def plotHisto(argv) :
                     ratioHist.SetBinContent(i,ratioHist.GetBinContent(i)/BkgErr.GetErrorY(i-1))
             yTitle2 = "(Data-MC)/Unc." 
             ratioHist.SetFillColor(12)
+            ratioHist.SetMinimum(-5.0) #-1.1*max(ratioHist.GetMaximum(),abs(ratioHist.GetMinimum())))
+            ratioHist.SetMaximum(5.0) #1.1*max(ratioHist.GetMaximum(),abs(ratioHist.GetMinimum())))
             ratioHist.Draw("hist")
         else:
             ratioHist.Divide(AllBkgHist)
             yTitle2 = "Data/MC"
             ratioHist.Draw("e")
+            UnityLine.Draw("same")
         ratioHist.SetTitle(";"+xTitle+";"+yTitle2);
         CMS_lumi.CMS_lumi(padup, iPeriod, iPos)
         padup.cd()
