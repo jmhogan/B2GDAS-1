@@ -103,29 +103,29 @@ def plot_mttbar(argv) :
 
     h_mttbar = ROOT.TH1F("h_mttbar", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000)
 
-    h_mttbar_lwu = ROOT.TH1F("h_mttbar_lwu", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000)
-    h_mttbar_lwd = ROOT.TH1F("h_mttbar_lwd", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000)
+    h_mttbar_lwu = ROOT.TH1F("h_mttbar_lwu", ";m_{t#bar{t}} (GeV);Number", 50, 0, 4000)
+    h_mttbar_lwd = ROOT.TH1F("h_mttbar_lwd", ";m_{t#bar{t}} (GeV);Number", 50, 0, 4000)
 
-    h_mttbar_jec_up = ROOT.TH1F("h_mttbar_jec_up", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000) 
-    h_mttbar_jec_down = ROOT.TH1F("h_mttbar_jec_down", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000)
-    h_mttbar_jer_up = ROOT.TH1F("h_mttbar_jer_up", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000) 
-    h_mttbar_jer_down = ROOT.TH1F("h_mttbar_jer_down", ";m_{t#bar{t}} (GeV);Number", 50, 0, 5000)
+    h_mttbar_jec_up = ROOT.TH1F("h_mttbar_jec_up", ";m_{t#bar{t}} (GeV);Number", 50, 0, 4000) 
+    h_mttbar_jec_down = ROOT.TH1F("h_mttbar_jec_down", ";m_{t#bar{t}} (GeV);Number", 50, 0, 4000)
+    h_mttbar_jer_up = ROOT.TH1F("h_mttbar_jer_up", ";m_{t#bar{t}} (GeV);Number", 50, 0, 4000) 
+    h_mttbar_jer_down = ROOT.TH1F("h_mttbar_jer_down", ";m_{t#bar{t}} (GeV);Number", 50, 0, 4000)
 
-    h_mtopHad = ROOT.TH1F("h_mtopHad", ";m_{jet} (GeV);Number", 50, 0, 400)
-    h_mtopHadGroomed = ROOT.TH1F("h_mtopHadGroomed", ";Groomed m_{jet} (GeV);Number", 50, 0, 400)
+    h_mtopHad = ROOT.TH1F("h_mtopHad", ";m_{jet} (GeV);Number", 50, 100, 350)
+    h_mtopHadGroomed = ROOT.TH1F("h_mtopHadGroomed", ";Groomed m_{jet} (GeV);Number", 50, 100, 250)
 
-    h_lepton_pt = ROOT.TH1F("h_lepton_pt", ";p_{t} (GeV);Number", 50, 0, 500)
+    h_lepton_pt = ROOT.TH1F("h_lepton_pt", ";p_{t} (GeV);Number", 50, 45, 500)
     h_MET  = ROOT.TH1F("h_MET", ";E_T Missing (GeV);Number", 50, 0, 500)
     h_lepton_eta = ROOT.TH1F("h_lepton_eta", "eta;Number", 50, -3, 3) 
-    h_LepTopCandP4_pt = ROOT.TH1F("h_LepTopCanP4_pt", ";p_T Leptonic Top (GeV);Number", 50, 0, 5000)
-    h_LepTopCandP4_m = ROOT.TH1F("h_LepTopCanP4_m", ";m_t (GeV);Number", 50, 0, 5000) 
+    h_LepTopCandP4_pt = ROOT.TH1F("h_LepTopCanP4_pt", ";p_T Leptonic Top (GeV);Number", 50, 0, 1500)
+    h_LepTopCandP4_m = ROOT.TH1F("h_LepTopCanP4_m", ";m_t (GeV);Number", 50, 0, 1500) 
     h_Compare = ROOT.TH2D("h_Compare", "FatJet p_T (GeV);Lepton DR Min", 50, 0, 2000, 50, 0, 6 ) # Figure out syntax later...
 
-    h_FatJetPt = ROOT.TH1F("h_FatJetPt",";pt_{jet} (GeV) ; Number", 50, 0, 1000)
-    h_FatJetEta = ROOT.TH1F("h_FatJetEta",";#Eta ; Number", 50, 0, 4)
-    h_NearestAK4JetPt = ROOT.TH1F("h_NearestAK4JetPt",";pt_{jet} (GeV) ; Number", 50,0 , 260)
-    h_NearestAK4JetEta = ROOT.TH1F("h_NearestAK4JetEta","; #Eta ; Number", 50, 0, 4)
-    h_NearestAK4JetBDisc = ROOT.TH1F("h_NearestAK4JetBDisc",";BDisc ; Number", 50, 0, 1)
+    h_FatJetPt = ROOT.TH1F("h_FatJetPt",";pt_{jet} (GeV) ; Number", 50, 400, 1000)
+    h_FatJetEta = ROOT.TH1F("h_FatJetEta",";#Eta ; Number", 50, -3, 3)
+    h_NearestAK4JetPt = ROOT.TH1F("h_NearestAK4JetPt",";pt_{jet} (GeV) ; Number", 50, 25 , 500)
+    h_NearestAK4JetEta = ROOT.TH1F("h_NearestAK4JetEta","; #Eta ; Number", 50, -3, 3)
+    h_NearestAK4JetBDisc = ROOT.TH1F("h_NearestAK4JetBDisc",";BDisc ; Number", 50, 0.1, 1)
 
     h_FatJetPt.Sumw2()
     h_FatJetEta.Sumw2()
@@ -290,6 +290,10 @@ def plot_mttbar(argv) :
 
         t.SetBranchStatus ('*', 0)
         t.SetBranchStatus ('FatJetSDBDiscB', 1)
+        t.SetBranchStatus ('LeptonIDWeight', 1)
+        t.SetBranchStatus ('LeptonIDWeightUnc', 1)
+        t.SetBranchStatus ('EleRecoWeight', 1)
+        t.SetBranchStatus ('EleRecoWeightUnc', 1)
         t.SetBranchStatus ('FatJetSDBDiscW', 1)
         t.SetBranchStatus ('SemiLeptWeight', 1)
         t.SetBranchStatus ('PUWeight', 1)
@@ -404,7 +408,7 @@ def plot_mttbar(argv) :
             bJetCandP4_jec_down = bJetCandP4*jec_down
             bJetCandP4_jer_up = bJetCandP4*jer_up
             bJetCandP4_jer_down = bJetCandP4*jer_down
-            
+ 
             theLeptonWeight = LeptonIDWeight[0]
             theLepton_WeightUp = theLeptonWeight + LeptonIDWeightUnc[0]
             theLepton_WeightDown = theLeptonWeight - LeptonIDWeightUnc[0]
@@ -489,20 +493,9 @@ def plot_mttbar(argv) :
             mttbar_jer_down = ttbarCand_jec_down.M()
             # ---------------------------------------------------------- #
 
-            # -------- Avoid Division By Zero ---------- #
-            if theLeptonWeight != 0:
-                LWU = theLepton_WeightUp/theLeptonWeight
-                LWD = theLepton_WeightDown/theLeptonWeight
-            else:
-                LWU = 1.0
-                LWD = 1.0
-
-            SemiLeptWeight[0] *= triggerEfficiency
+            SemiLeptWeight[0] *= triggerEfficiency * theLeptonWeight
 
             h_mttbar.Fill( mttbar, SemiLeptWeight[0] )
-            
-            h_mttbar_lwu.Fill( mttbar, SemiLeptWeight[0]*LWU ) 
-            h_mttbar_lwd.Fill( mttbar, SemiLeptWeight[0]*LWD )
 
             h_mttbar_jec_up.Fill( mttbar_jec_up, SemiLeptWeight[0] )
             h_mttbar_jec_down.Fill( mttbar_jec_down, SemiLeptWeight[0] )
@@ -524,6 +517,17 @@ def plot_mttbar(argv) :
             h_NearestAK4JetPt.Fill( NearestAK4JetPt[0], SemiLeptWeight[0])
             h_NearestAK4JetEta.Fill( NearestAK4JetEta[0], SemiLeptWeight[0])
             h_NearestAK4JetBDisc.Fill( NearestAK4JetBDisc[0], SemiLeptWeight[0])
+
+            # -------- Avoid Division By Zero ---------- #
+
+            if theLeptonWeight != 0:
+                LWU = theLepton_WeightUp/theLeptonWeight
+                LWD = theLepton_WeightDown/theLeptonWeight
+            else:
+                continue
+                
+            h_mttbar_lwu.Fill( mttbar, SemiLeptWeight[0]*LWU ) 
+            h_mttbar_lwd.Fill( mttbar, SemiLeptWeight[0]*LWD )
             
         print(count)
 
