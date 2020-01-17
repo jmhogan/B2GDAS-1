@@ -61,7 +61,7 @@ def plotHisto(argv) :
     iPos = 11
     FillColor = [ROOT.kRed, ROOT.kCyan, ROOT.kGreen+2, ROOT.kMagenta+1, ROOT.kOrange+7]
 
-    canvas.cd()
+#    canvas.cd()
     padup = ROOT.TPad("padup", "padup", 0.01,0.33,0.99,0.99);
     padup.SetBottomMargin(0.01)
     padup.SetTopMargin(0.1)
@@ -73,14 +73,15 @@ def plotHisto(argv) :
     padup.SetFrameBorderMode(0)
     padup.SetTickx(0)
     padup.SetTicky(0)
-    padup.Draw()
+#    padup.Draw()
     
     paddown = ROOT.TPad("paddown", "paddown", 0.01,0.01,0.99,0.32);
     paddown.SetTopMargin(0.01)
     paddown.SetBottomMargin(0.3)
     paddown.SetRightMargin(0.1)
     #paddown.SetGridx()
-    paddown.Draw()
+    #paddown.Draw()
+
 
     Legend = ROOT.TLegend(0.6, 0.6, 0.8, 0.8)
     Legend.SetBorderSize(0)
@@ -89,11 +90,18 @@ def plotHisto(argv) :
     Legend.SetFillColor(ROOT.kWhite)
     KeyNames = []
     AllHists = []
-    StackedHist = ROOT.THStack("StackedHsit","");
+    StackedHist = []
     for key in ListOfKeys:
         if(DEBUG) : print key.GetName(),  key.GetClassName()
-        if "TH1" not in key.GetClassName() and "TH2" not in key.GetClassName():
+        if "TH1" not in key.GetClassName(): # and "TH2" not in key.GetClassName():
             continue
+
+        #canvas.Clear()
+        canvas.cd()
+        padup.Draw()
+        paddown.Draw()
+        Legend.Clear()
+
         KeyNames.append(key.GetName())
         Hists = []
         StackedBkgHist = ROOT.THStack(key.GetName()+"_MC",key.GetName()+"_MC") 
@@ -104,14 +112,27 @@ def plotHisto(argv) :
                 ifile = ROOT.TFile.Open(inDir+"/"+f)
                 hist = ifile.Get(KeyNames[-1])
                 hist.SetDirectory(0)
-                bkghist.Add(hist,weight[f.split("_plots")[0]])
+                if(DEBUG) : print bkghist, hist, 'bkg ', f.split("_plots")[0], ' weight ', weight[f.split("_plots")[0]], ' nBins ', hist.GetNbinsX() 
+                if i==0 : 
+                    bkghist = hist.Clone(cat)
+                    bkghist.Scale(weight[f.split("_plots")[0]])
+                    if(DEBUG) : print bkghist
+                else:
+                    bkghist.Add(hist,weight[f.split("_plots")[0]])
+                bkghist.SetDirectory(0)
+                ifile.Close()
             Hists.append(bkghist)
-            if(DEBUG) : print Hists
+            if(DEBUG) : print Hists, Hists[-1]
             Hists[-1].SetFillColor(FillColor[j])
             Hists[-1].SetName(KeyNames[-1]+"_"+cat)
             Legend.AddEntry(Hists[-1], cat,"f") 
 	    StackedBkgHist.Add(Hists[-1])
-            AllBkgHist.Add(Hists[-1])
+            if(DEBUG) : print 'after stack'
+            if j==0:
+                AllBkgHist= Hists[-1].Clone("AllBkg")
+            else:
+                AllBkgHist.Add(Hists[-1])
+        StackedHist.append(StackedBkgHist)
         BkgErr = ROOT.TGraphErrors()
         errRate = 0.1
         for i in range(1,AllBkgHist.GetNbinsX()+1):
@@ -120,13 +141,17 @@ def plotHisto(argv) :
         BkgErr.SetFillStyle(3004)
         BkgErr.SetFillColor(12)
         BkgErr.SetLineColor(12)
+
         DataHist = ROOT.TH1D()
         for i,f in enumerate(data):
+            if not ('El' in inDir and 'El' in f) and not ('Mu' in inDir and 'Mu' in f): continue
             ifile = ROOT.TFile.Open(inDir+"/"+f)
             hist = ifile.Get(KeyNames[-1])
             hist.SetDirectory(0)
             Hists.append(hist)
-            DataHist.Add(Hists[-1])
+            DataHist = hist.Clone("Data")
+            DataHist.SetDirectory(0)
+            ifile.Close()
         DataHist.SetName(KeyNames[-1]+"_data")
         Legend.AddEntry(DataHist, "Data","pe")
 
@@ -135,27 +160,35 @@ def plotHisto(argv) :
             ifile = ROOT.TFile.Open(inDir+"/"+f)
             hist = ifile.Get(KeyNames[-1])
             hist.SetDirectory(0)
-            hist.Scale(weight[f])
+            hist.Scale(weight[f.split("_plots")[0]])
             SigHists.append(hist)
             SigHists[-1].SetLineColor(1)  
             SigHists[-1].SetLineWidth(3)
             SigHists[-1].SetLineStyle(i+1)          
             SigHists[-1].SetName(KeyNames[-1]+"_"+f.split('.')[0])
             Legend.AddEntry(SigHists[-1], f.split('_')[0]+" "+f.split('_')[1]+" GeV","l")
+            ifile.Close()
 	AllHists.append(Hists)
-        padup.cd()
-        StackedBkgHist.SetMinimum(0.0)
-        DataHist.SetMinimum(0.0)
-        DataHist.SetMaximum(max(StackedBkgHist.GetMaximum(), DataHist.GetMaximum())*1.3)
+        #StackedBkgHist.SetMinimum(0.0)
+        #DataHist.SetMinimum(0.0)
+        #DataHist.SetMaximum((DataHist.GetMaximum())*2.0)
+        DataHist.GetYaxis().SetRangeUser(0.0, (DataHist.GetMaximum())*1.7)
         DataHist.GetYaxis().SetTitle("Events/bin")
         DataHist.GetYaxis().SetTitleSize(0.06)
+        DataHist.GetYaxis().SetLabelSize(0.05)
         DataHist.GetYaxis().SetTitleOffset(0.98)
+        DataHist.SetMarkerStyle(8)
+
+        padup.cd()
         DataHist.Draw("e")
-        StackedBkgHist.Draw("histsame")
+        StackedBkgHist.Draw("hist same")
         BkgErr.Draw("same E2") 
         SigHists[0].Draw("histsame")
+        DataHist.SetTitle("; ; Events/bin");
         DataHist.Draw("esame")
+
         paddown.cd()
+        if(DEBUG) : print DataHist.GetNbinsX()
         ratioHist = DataHist.Clone("ratioHist")
         ratioHist.SetMinimum(0.0)
         ratioHist.SetMaximum(1.6)
@@ -168,6 +201,7 @@ def plotHisto(argv) :
         xTitle = SigHists[0].GetXaxis().GetTitle()
         if(DEBUG) : print xTitle
         if options.discrim.lower() in KeyNames[-1].lower():
+            if(DEBUG) : print ratioHist, AllBkgHist
             ratioHist.Add(AllBkgHist, -1)
             for i in range(1,ratioHist.GetNbinsX()+1):
                 if not BkgErr.GetErrorY(i-1) == 0.0:

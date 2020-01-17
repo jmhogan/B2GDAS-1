@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-Lumi = 1
+Lumi = 40000
 
 bkgsamples = {
     "QCD": [   
@@ -15,7 +15,7 @@ bkgsamples = {
         "WJets_100to250_plots.root",
         "WJets_250to400_plots.root",
         "WJets_400to600_plots.root",
-        "WJets_50to100_plots.root".
+        "WJets_50to100_plots.root",
         "WJets_600toInf_plots.root",
     ],
     "ST" :[
@@ -40,14 +40,14 @@ data = [
 
 signal = [
     "RSG_1000_plots.root",
-    "RSG_2000_plots.root",
-    "RSG_2500_plots.root",
-    "RSG_3000_plots.root",
-    "RSG_3500_plots.root",
-    "RSG_4000_plots.root",
-    "RSG_4500_plots.root",
-    "RSG_500_plots.root",
-    "RSG_5000_plots.root",
+    #"RSG_2000_plots.root",
+    #"RSG_2500_plots.root",
+    #"RSG_3000_plots.root",
+    #"RSG_3500_plots.root",
+    #"RSG_4000_plots.root",
+    #"RSG_4500_plots.root",
+    #"RSG_500_plots.root",
+    #"RSG_5000_plots.root",
 ]
 
 weight = {}
