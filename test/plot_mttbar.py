@@ -290,6 +290,10 @@ def plot_mttbar(argv) :
 
         t.SetBranchStatus ('*', 0)
         t.SetBranchStatus ('FatJetSDBDiscB', 1)
+        t.SetBranchStatus ('LeptonIDWeight', 1)
+        t.SetBranchStatus ('LeptonIDWeightUnc', 1)
+        t.SetBranchStatus ('EleRecoWeight', 1)
+        t.SetBranchStatus ('EleRecoWeightUnc', 1)
         t.SetBranchStatus ('FatJetSDBDiscW', 1)
         t.SetBranchStatus ('SemiLeptWeight', 1)
         t.SetBranchStatus ('PUWeight', 1)
@@ -404,7 +408,7 @@ def plot_mttbar(argv) :
             bJetCandP4_jec_down = bJetCandP4*jec_down
             bJetCandP4_jer_up = bJetCandP4*jer_up
             bJetCandP4_jer_down = bJetCandP4*jer_down
-            
+ 
             theLeptonWeight = LeptonIDWeight[0]
             theLepton_WeightUp = theLeptonWeight + LeptonIDWeightUnc[0]
             theLepton_WeightDown = theLeptonWeight - LeptonIDWeightUnc[0]
@@ -489,20 +493,9 @@ def plot_mttbar(argv) :
             mttbar_jer_down = ttbarCand_jec_down.M()
             # ---------------------------------------------------------- #
 
-            # -------- Avoid Division By Zero ---------- #
-            if theLeptonWeight != 0:
-                LWU = theLepton_WeightUp/theLeptonWeight
-                LWD = theLepton_WeightDown/theLeptonWeight
-            else:
-                LWU = 1.0
-                LWD = 1.0
-
             SemiLeptWeight[0] *= triggerEfficiency
 
             h_mttbar.Fill( mttbar, SemiLeptWeight[0] )
-            
-            h_mttbar_lwu.Fill( mttbar, SemiLeptWeight[0]*LWU ) 
-            h_mttbar_lwd.Fill( mttbar, SemiLeptWeight[0]*LWD )
 
             h_mttbar_jec_up.Fill( mttbar_jec_up, SemiLeptWeight[0] )
             h_mttbar_jec_down.Fill( mttbar_jec_down, SemiLeptWeight[0] )
@@ -524,6 +517,17 @@ def plot_mttbar(argv) :
             h_NearestAK4JetPt.Fill( NearestAK4JetPt[0], SemiLeptWeight[0])
             h_NearestAK4JetEta.Fill( NearestAK4JetEta[0], SemiLeptWeight[0])
             h_NearestAK4JetBDisc.Fill( NearestAK4JetBDisc[0], SemiLeptWeight[0])
+
+            # -------- Avoid Division By Zero ---------- #
+
+            if theLeptonWeight != 0:
+                LWU = theLepton_WeightUp/theLeptonWeight
+                LWD = theLepton_WeightDown/theLeptonWeight
+            else:
+                continue
+                
+            h_mttbar_lwu.Fill( mttbar, SemiLeptWeight[0]*LWU ) 
+            h_mttbar_lwd.Fill( mttbar, SemiLeptWeight[0]*LWD )
             
         print(count)
 
