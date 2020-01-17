@@ -132,7 +132,7 @@ def plotHisto(argv) :
             if(DEBUG) : print Hists, Hists[-1]
             Hists[-1].SetFillColor(FillColor[j])
             Hists[-1].SetName(KeyNames[-1]+"_"+cat)
-            if(PrintYield): print cat, " Integral = ", Hists[-1].Integral()
+            if(PrintYield): print cat, " Integral = ", Hists[-1].Integral(0,Hists[-1].GetNbinsX()+1)
             Legend.AddEntry(Hists[-1], cat,"f") 
 	    StackedBkgHist.Add(Hists[-1])
             if(DEBUG) : print 'after stack'
@@ -160,6 +160,7 @@ def plotHisto(argv) :
             DataHist.SetDirectory(0)
             ifile.Close()
         DataHist.SetName(KeyNames[-1]+"_data")
+        if(PrintYield): print "data Integral = " , DataHist.Integral(0,DataHist.GetNbinsX()+1)
         Legend.AddEntry(DataHist, "Data","pe")
 
         SigHists = []
